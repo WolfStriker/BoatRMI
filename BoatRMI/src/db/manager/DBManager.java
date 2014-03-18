@@ -31,6 +31,10 @@ public class DBManager {
 		DBManager.db = db;
 	}
 	
+	/**
+	 * Create new connection to BDD
+	 * @return
+	 */
 	public boolean connection(){
 		try {
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
@@ -52,6 +56,10 @@ public class DBManager {
 		}
 	}
 	
+	/**
+	 * Close connection to BDD
+	 * @return
+	 */
 	public boolean closeConnection(){
 		try {
 			DBManager.conn.close();
@@ -62,6 +70,10 @@ public class DBManager {
 		}
 	}
 	
+	/**
+	 * List all tables in BDD
+	 * @return
+	 */
 	public ArrayList<String> afficheTables(){
 		DatabaseMetaData md;
 		try {
@@ -78,6 +90,11 @@ public class DBManager {
 		}
 	}
 	
+	/**
+	 * List all element of table in BDD
+	 * @param table
+	 * @return
+	 */
 	public ArrayList<String> afficheElementTable(String table){
 		ArrayList<String> list = new ArrayList<String>(0);
 		try {
@@ -104,6 +121,46 @@ public class DBManager {
 		}
 	}
 	
+	/**
+	 * Search 'note' on Table bateau
+	 * @param note
+	 * @return
+	 */
+	public ArrayList<String> search(String note){
+		ArrayList<String> list = new ArrayList<String>(0);
+		try{
+			String search = "SELECT * FROM bateau WHERE notice LIKE '%?%' OR nom LIKE '%?%'";
+			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(search, Statement.RETURN_GENERATED_KEYS);
+			pst.setString(1, note);
+			pst.setString(2, note);
+			ResultSet rs = pst.executeQuery(search);
+			ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
+			int nbCol = rsmd.getColumnCount();
+			String colName = "";
+			for(int i=1 ; i<=nbCol ; i++){
+				colName += "- "+rsmd.getColumnName(i);
+			}
+			list.add(colName);
+			String l = "";
+			while(rs.next()){
+				for(int i = 1 ; i<=nbCol ; i++){
+					l += "- "+rs.getString(i);
+				}
+				list.add(l);
+				l = "";
+			}
+			return list;
+		}catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
+	 * Add boat on BDD
+	 * @param b
+	 * @return
+	 */
 	public boolean addBoat(Boat b){
 		try {
 			String insertBoat = "INSERT INTO projetboat.bateau(notice,photo,groupe) VALUES ('"+b.getNotice()+"', '"+b.getPhoto()+"', '"+b.getGroupe()+"')";
@@ -116,6 +173,11 @@ public class DBManager {
 		}
 	}
 	
+	/**
+	 * Add group on BDD
+	 * @param g
+	 * @return
+	 */
 	public boolean addGroupe(Groupe g){
 		try {
 			String insertGroup = "INSERT INTO projetboat.groupe(nom) VALUES ('"+g.getNom()+"')";
@@ -128,6 +190,11 @@ public class DBManager {
 		}
 	}
 	
+	/**
+	 * Add user on BDD
+	 * @param u
+	 * @return
+	 */
 	public boolean addUser(User u){
 		try {
 			String insertUser = "INSERT INTO projetboat.utilisateur(login,password) VALUES ('"+u.getLogin()+"','"+u.getPassword()+"')";
@@ -140,6 +207,12 @@ public class DBManager {
 		}
 	}
 	
+	
+	/**
+	 * Remove Boat on BDD
+	 * @param notice
+	 * @return
+	 */
 	public boolean removeBoat(String notice){
 		try {
 			String deleteBoat = "DELETE FROM projetboat.bateau WHERE bateau.notice ='"+notice+"'";
@@ -152,6 +225,11 @@ public class DBManager {
 		}
 	}
 	
+	/**
+	 * Remove Group on BDD
+	 * @param nom
+	 * @return
+	 */
 	public boolean removeGroupe(String nom){
 		try {
 			String deleteGroup = "DELETE FROM projetboat.groupe WHERE groupe.nom ='"+nom+"'";
@@ -164,6 +242,11 @@ public class DBManager {
 		}
 	}
 	
+	/**
+	 * Remove User on BDD
+	 * @param login
+	 * @return
+	 */
 	public boolean removeUser(String login){
 		try {
 			String deleteUser = "DELETE FROM projetboat.utilisateur WHERE utilisateu.login ='"+login+"'";
@@ -176,6 +259,12 @@ public class DBManager {
 		}
 	}
 	
+	/**
+	 * Check if user exist
+	 * @param login
+	 * @param password
+	 * @return
+	 */
 	public boolean userExist(String login, String password){
 		try {
 			String select = "SELECT COUNT(*) AS COUNT FROM utilisateur WHERE (login=? AND password=?)";
@@ -199,6 +288,10 @@ public class DBManager {
 		}
 	}
 	
+	/**
+	 * Get connection Object
+	 * @return
+	 */
 	public Connection getConnection(){
 		return DBManager.conn;
 	}
