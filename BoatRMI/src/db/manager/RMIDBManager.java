@@ -1,12 +1,17 @@
 package db.manager;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Properties;
 
+import rmi.IRMIDB;
 import bean.Boat;
 import bean.Groupe;
 import bean.User;
@@ -15,7 +20,7 @@ import com.mysql.jdbc.PreparedStatement;
 import com.mysql.jdbc.ResultSetMetaData;
 import com.mysql.jdbc.Statement;
 
-public class DBManager {
+public class RMIDBManager implements IRMIDB{
 
 	private static Connection conn = null;
 	private static Statement st = null;
@@ -24,11 +29,26 @@ public class DBManager {
 	private static String pwd;
 	private static String db;
 	
-	public DBManager(String url, String user, String pwd, String db){
-		DBManager.url = url;
-		DBManager.user = user;
-		DBManager.pwd = pwd;
-		DBManager.db = db;
+	public boolean getProperties(){
+		Properties p = null;
+		try {
+			p = new Properties();
+			p.load(RMIDBManager.class.getResourceAsStream("/DB.properties"));
+		} catch (FileNotFoundException e) {
+		    System.out.println("500 - INTERNAL SERVER ERROR (CAN'T FOUND .PROPERTIES)\n" + e.getMessage());
+		    return false;
+		} catch (IOException e) {
+		    System.out.println("500 - INTERNAL SERVER ERROR (CAN'T LOAD .PROPERTIES)\n" + e.getMessage());
+		    return false;
+		}
+		  
+		if(p != null){
+			url = p.getProperty("url", "jdbc:mysql://localhost:3306/");
+			user = p.getProperty("user", "root");
+			pwd = p.getProperty("pwd", "");
+			db = p.getProperty("db", "livre");
+		}
+		return true;
 	}
 	
 	/**
@@ -38,8 +58,8 @@ public class DBManager {
 	public boolean connection(){
 		try {
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
-			DBManager.conn = DriverManager.getConnection(url+db, user, pwd);
-			st = (Statement) DBManager.conn.createStatement();
+			RMIDBManager.conn = DriverManager.getConnection(url+db, user, pwd);
+			st = (Statement) RMIDBManager.conn.createStatement();
 			return true;
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -62,7 +82,7 @@ public class DBManager {
 	 */
 	public boolean closeConnection(){
 		try {
-			DBManager.conn.close();
+			RMIDBManager.conn.close();
 			return true;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -303,6 +323,59 @@ public class DBManager {
 	 * @return
 	 */
 	public Connection getConnection(){
-		return DBManager.conn;
+		return RMIDBManager.conn;
+	}
+
+	@Override
+	public String hello() throws RemoteException {
+		return "HELLO RMI";
+	}
+	
+	public void test(){
+		if(getProperties()){
+			RMIDBManager dbM = new RMIDBManager();
+			if(dbM.connection()){
+				System.out.println("Connection Successfull\nDataBase : '"+url+db+"'\nTables :");
+				ArrayList<String> listTableBDD = dbM.afficheTables();
+				if(listTableBDD != null){
+					for(int i=0; i<listTableBDD.size(); i++){
+						System.out.println("\t'"+listTableBDD.get(i)+"'");
+					}
+				}
+				ArrayList<String> listBoat = dbM.afficheElementTable("bateau");
+				System.out.println("Bateau :");
+				if(listBoat != null){
+					for(int i = 0; i<listBoat.size(); i++){
+						System.out.println("\t'"+listBoat.get(i)+"'");
+					}
+				}
+				if(dbM.addBoat(new Boat("32 Riviera", "Super bateau", "", 2))){
+					System.out.println("Ajout Bateau OK!");
+				}
+				
+				if(dbM.addGroupe(new Groupe("test"))){
+					System.out.println("Ajout Groupe OK!");
+				}
+				
+				if(dbM.addUser(new User("toto", "test"))){
+					System.out.println("Ajout User OK!");
+				}
+				
+				if(dbM.removeBoat("32 Riviera")){
+					System.out.println("Suppression OK!");
+				}
+				
+				if(dbM.userExist("antoine", "fouque")){
+					System.out.println("User exist !");
+				}
+				else{
+					System.out.println("User Not Exist!");
+				}
+			}
+			else{
+				System.out.println("Connection failed");
+			}
+		}
+		
 	}
 }
