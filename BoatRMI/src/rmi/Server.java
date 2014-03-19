@@ -57,9 +57,12 @@ public class Server{
 	{
 		Server srv = new Server(2000);
 		srv.init();
+		System.out.println("---------------------------SERVEUR-----------------------------");
 		System.out.println("Serveur RMI Started");
 		RMIDBManager o = new RMIDBManager();
 		srv.export(o, "RMIDBManager");
+		System.out.println("Serveur publish RMIDBManager Object");
+		System.out.println("---------------------------------------------------------------");
 		
 	}
 }

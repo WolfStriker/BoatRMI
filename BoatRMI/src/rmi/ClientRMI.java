@@ -11,12 +11,14 @@ public class ClientRMI {
 		
 		try 
 		{
+			System.out.println("---------------------------CLIENT-----------------------------");
 			Registry reg = LocateRegistry.getRegistry(2000);
 			Remote r = reg.lookup("RMIDBManager");
 			if(r != null)
 			{
-				IRMIDB test = (IRMIDB) r;
-				test.test();
+				IRMIDB irmdb = (IRMIDB) r;
+				System.out.println("Execute Test");
+				irmdb.test();
 			}
 			else throw new Exception("lookup hello null");
 			
@@ -25,7 +27,7 @@ public class ClientRMI {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+		System.out.println("-------------------------------------------------------------");
 		System.exit(0);
 
 	}

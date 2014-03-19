@@ -60,6 +60,7 @@ public class RMIDBManager implements IRMIDB{
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
 			RMIDBManager.conn = DriverManager.getConnection(url+db, user, pwd);
 			st = (Statement) RMIDBManager.conn.createStatement();
+			System.out.println("Connection DB Successfull\nDataBase : '"+url+db+"'");
 			return true;
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -335,7 +336,7 @@ public class RMIDBManager implements IRMIDB{
 		if(getProperties()){
 			RMIDBManager dbM = new RMIDBManager();
 			if(dbM.connection()){
-				System.out.println("Connection Successfull\nDataBase : '"+url+db+"'\nTables :");
+				System.out.println("Tables :");
 				ArrayList<String> listTableBDD = dbM.afficheTables();
 				if(listTableBDD != null){
 					for(int i=0; i<listTableBDD.size(); i++){
