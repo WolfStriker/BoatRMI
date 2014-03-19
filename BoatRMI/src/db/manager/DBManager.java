@@ -260,6 +260,27 @@ public class DBManager {
 	}
 	
 	/**
+	 * Update boat in BDD
+	 * @param id, notice, nom, photo
+	 * @return bool
+	 */
+	public boolean updateBoat(int id, String notice, String nom, String photo)
+	{
+		try {
+			String updateBoat = "UPDATE bateau SET notice=?,nom=?,photo=?,groupe=? WHERE id=?";
+			PreparedStatement ps = (PreparedStatement) conn.prepareStatement(updateBoat);
+		    ps.setString(1, notice);
+		    ps.setString(2, nom);
+		    ps.setString(3, photo);
+		    ps.setInt(4, id);
+		    ps.executeUpdate();
+		    return true;
+		} catch (Exception e) {
+		    e.printStackTrace();
+		    return false;
+		}
+	}
+	/**
 	 * Check if user exist
 	 * @param login
 	 * @param password
