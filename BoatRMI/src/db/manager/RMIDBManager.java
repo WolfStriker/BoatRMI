@@ -112,72 +112,6 @@ public class RMIDBManager implements IRMIDB{
 	}
 	
 	/**
-	 * List all element of table in BDD
-	 * @param table
-	 * @return
-	 */
-	public ArrayList<String> afficheElementTable(String table){
-		ArrayList<String> list = new ArrayList<String>(0);
-		try {
-			ResultSet rs = (ResultSet) st.executeQuery("SELECT * from "+table);
-			ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
-			int nbCol = rsmd.getColumnCount();
-			String colName = "";
-			for(int i=1 ; i<=nbCol ; i++){
-				colName += "- "+rsmd.getColumnName(i);
-			}
-			list.add(colName);
-			String l = "";
-			while(rs.next()){
-				for(int i = 1 ; i<=nbCol ; i++){
-					l += "- "+rs.getString(i);
-				}
-				list.add(l);
-				l = "";
-			}
-			return list;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
-	/**
-	 * Search 'note' on Table bateau
-	 * @param note
-	 * @return
-	 */
-	public ArrayList<String> search(String note){
-		ArrayList<String> list = new ArrayList<String>(0);
-		try{
-			String search = "SELECT * FROM bateau WHERE notice LIKE '%?%' OR nom LIKE '%?%'";
-			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(search, Statement.RETURN_GENERATED_KEYS);
-			pst.setString(1, note);
-			pst.setString(2, note);
-			ResultSet rs = pst.executeQuery(search);
-			ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
-			int nbCol = rsmd.getColumnCount();
-			String colName = "";
-			for(int i=1 ; i<=nbCol ; i++){
-				colName += "- "+rsmd.getColumnName(i);
-			}
-			list.add(colName);
-			String l = "";
-			while(rs.next()){
-				for(int i = 1 ; i<=nbCol ; i++){
-					l += "- "+rs.getString(i);
-				}
-				list.add(l);
-				l = "";
-			}
-			return list;
-		}catch (SQLException e) {
-			e.printStackTrace();
-			return null;
-		}
-	}
-	
-	/**
 	 * Add boat on BDD
 	 * @param b
 	 * @return
@@ -332,7 +266,7 @@ public class RMIDBManager implements IRMIDB{
 		return "HELLO RMI";
 	}
 	
-	public void test(){
+	public void test() throws RemoteException{
 		if(getProperties()){
 			RMIDBManager dbM = new RMIDBManager();
 			if(dbM.connection()){
@@ -343,7 +277,7 @@ public class RMIDBManager implements IRMIDB{
 						System.out.println("\t'"+listTableBDD.get(i)+"'");
 					}
 				}
-				ArrayList<String> listBoat = dbM.afficheElementTable("bateau");
+				ArrayList<Boat> listBoat = dbM.afficheAllBoat();
 				System.out.println("Bateau :");
 				if(listBoat != null){
 					for(int i = 0; i<listBoat.size(); i++){

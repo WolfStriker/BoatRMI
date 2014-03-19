@@ -2,6 +2,7 @@ package db.manager;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -17,7 +18,7 @@ public class DB {
 	private static String pwd;
 	private static String db;
 	private static ArrayList<String> listTableBDD = null;
-	private static ArrayList<String> listBoat = null;
+	private static ArrayList<Boat> listBoat = null;
 	
 	/**
 	 * Get Properties
@@ -60,14 +61,14 @@ public class DB {
 		return false;
 	}
 	
-	public static void test(){
+	public static void test() throws RemoteException{
 		listTableBDD = dbM.afficheTables();
 		if(listTableBDD != null){
 			for(int i=0; i<listTableBDD.size(); i++){
 				System.out.println("\t'"+listTableBDD.get(i)+"'");
 			}
 		}
-		listBoat = dbM.afficheElementTable("bateau");
+		listBoat = dbM.afficheAllBoat();
 		System.out.println("Bateau :");
 		if(listBoat != null){
 			for(int i = 0; i<listBoat.size(); i++){
