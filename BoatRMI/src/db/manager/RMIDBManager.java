@@ -1,21 +1,26 @@
 package db.manager;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.rmi.RemoteException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Properties;
+
+import rmi.IRMIDB;
+import bean.Boat;
+import bean.Groupe;
+import bean.User;
 
 import com.mysql.jdbc.PreparedStatement;
 import com.mysql.jdbc.ResultSetMetaData;
 import com.mysql.jdbc.Statement;
 
-import db.Boat;
-import db.Groupe;
-import db.User;
-
-public class DBManager {
+public class RMIDBManager implements IRMIDB{
 
 	private static Connection conn = null;
 	private static Statement st = null;
@@ -24,11 +29,26 @@ public class DBManager {
 	private static String pwd;
 	private static String db;
 	
-	public DBManager(String url, String user, String pwd, String db){
-		DBManager.url = url;
-		DBManager.user = user;
-		DBManager.pwd = pwd;
-		DBManager.db = db;
+	public boolean getProperties(){
+		Properties p = null;
+		try {
+			p = new Properties();
+			p.load(RMIDBManager.class.getResourceAsStream("/DB.properties"));
+		} catch (FileNotFoundException e) {
+		    System.out.println("500 - INTERNAL SERVER ERROR (CAN'T FOUND .PROPERTIES)\n" + e.getMessage());
+		    return false;
+		} catch (IOException e) {
+		    System.out.println("500 - INTERNAL SERVER ERROR (CAN'T LOAD .PROPERTIES)\n" + e.getMessage());
+		    return false;
+		}
+		  
+		if(p != null){
+			url = p.getProperty("url", "jdbc:mysql://localhost:3306/");
+			user = p.getProperty("user", "root");
+			pwd = p.getProperty("pwd", "");
+			db = p.getProperty("db", "livre");
+		}
+		return true;
 	}
 	
 	/**
@@ -38,8 +58,9 @@ public class DBManager {
 	public boolean connection(){
 		try {
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
-			DBManager.conn = DriverManager.getConnection(url+db, user, pwd);
-			st = (Statement) DBManager.conn.createStatement();
+			RMIDBManager.conn = DriverManager.getConnection(url+db, user, pwd);
+			st = (Statement) RMIDBManager.conn.createStatement();
+			System.out.println("Connection DB Successfull\nDataBase : '"+url+db+"'");
 			return true;
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
@@ -62,7 +83,7 @@ public class DBManager {
 	 */
 	public boolean closeConnection(){
 		try {
-			DBManager.conn.close();
+			RMIDBManager.conn.close();
 			return true;
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -157,14 +178,71 @@ public class DBManager {
 	}
 	
 	/**
+	 * Search boats by group
+	 * @param group
+	 * @return arrayList of strings (boats)
+	 */
+	public ArrayList<String> searchBoatByGroup(String group){
+		ArrayList<String> list = new ArrayList<String>(0);
+		try{
+			String search = "SELECT * FROM bateau WHERE groupe LIKE '%?%'";
+			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(search, Statement.RETURN_GENERATED_KEYS);
+			pst.setInt(1, this.getIdGroup(group));
+			ResultSet rs = pst.executeQuery(search);
+			ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
+			int nbCol = rsmd.getColumnCount();
+			String colName = "";
+			for(int i=1 ; i<=nbCol ; i++){
+				colName += "- "+rsmd.getColumnName(i);
+			}
+			list.add(colName);
+			String l = "";
+			while(rs.next()){
+				for(int i = 1 ; i<=nbCol ; i++){
+					l += "- "+rs.getString(i);
+				}
+				list.add(l);
+				l = "";
+			}
+			return list;
+		}catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
+	 * Get id of group from his name
+	 * @param name of group
+	 * @return id of group
+	 */
+	public int getIdGroup(String group){
+		try{
+
+			String search = "SELECT nom FROM groupe WHERE id LIKE '%?%'";
+			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(search, Statement.RETURN_GENERATED_KEYS); 
+			pst.setMaxRows(1); 
+			ResultSet rs = pst.executeQuery();
+			return rs.getInt(0);
+		}catch (SQLException e) {
+			e.printStackTrace();
+			return -1;
+		}
+	}
+	
+	/**
 	 * Add boat on BDD
 	 * @param b
 	 * @return
 	 */
 	public boolean addBoat(Boat b){
 		try {
-			String insertBoat = "INSERT INTO projetboat.bateau(notice,photo,groupe) VALUES ('"+b.getNotice()+"', '"+b.getPhoto()+"', '"+b.getGroupe()+"')";
+			String insertBoat = "INSERT INTO projetboat.bateau(nom,notice,photo,groupe) VALUES (?, ?, ?, ?)";
 			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(insertBoat, Statement.RETURN_GENERATED_KEYS);
+			pst.setString(1, b.getNom());
+			pst.setString(2, b.getNotice());
+			pst.setString(3, b.getPhoto());
+			pst.setInt(4, b.getGroupe());
 			pst.executeUpdate();
 			return true;
 		} catch (SQLException e) {
@@ -180,8 +258,9 @@ public class DBManager {
 	 */
 	public boolean addGroupe(Groupe g){
 		try {
-			String insertGroup = "INSERT INTO projetboat.groupe(nom) VALUES ('"+g.getNom()+"')";
+			String insertGroup = "INSERT INTO projetboat.groupe(nom) VALUES (?)";
 			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(insertGroup, Statement.RETURN_GENERATED_KEYS);
+			pst.setString(1, g.getNom());
 			pst.executeUpdate();
 			return true;
 		} catch (SQLException e) {
@@ -197,8 +276,10 @@ public class DBManager {
 	 */
 	public boolean addUser(User u){
 		try {
-			String insertUser = "INSERT INTO projetboat.utilisateur(login,password) VALUES ('"+u.getLogin()+"','"+u.getPassword()+"')";
+			String insertUser = "INSERT INTO projetboat.utilisateur(login,password) VALUES (?, ?)";
 			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(insertUser, Statement.RETURN_GENERATED_KEYS);
+			pst.setString(1, u.getLogin());
+			pst.setString(2, u.getPassword());
 			pst.executeUpdate();
 			return true;
 		} catch (SQLException e) {
@@ -213,10 +294,11 @@ public class DBManager {
 	 * @param notice
 	 * @return
 	 */
-	public boolean removeBoat(String notice){
+	public boolean removeBoat(String nom){
 		try {
-			String deleteBoat = "DELETE FROM projetboat.bateau WHERE bateau.notice ='"+notice+"'";
+			String deleteBoat = "DELETE FROM projetboat.bateau WHERE bateau.nom =?";
 			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(deleteBoat, Statement.RETURN_GENERATED_KEYS);
+			pst.setString(1, nom);
 			pst.executeUpdate();
 			return true;
 		} catch (SQLException e) {
@@ -232,8 +314,9 @@ public class DBManager {
 	 */
 	public boolean removeGroupe(String nom){
 		try {
-			String deleteGroup = "DELETE FROM projetboat.groupe WHERE groupe.nom ='"+nom+"'";
+			String deleteGroup = "DELETE FROM projetboat.groupe WHERE groupe.nom =?";
 			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(deleteGroup, Statement.RETURN_GENERATED_KEYS);
+			pst.setString(1, nom);
 			pst.executeUpdate();
 			return true;
 		} catch (SQLException e) {
@@ -249,8 +332,9 @@ public class DBManager {
 	 */
 	public boolean removeUser(String login){
 		try {
-			String deleteUser = "DELETE FROM projetboat.utilisateur WHERE utilisateu.login ='"+login+"'";
+			String deleteUser = "DELETE FROM projetboat.utilisateur WHERE utilisateu.login =?";
 			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(deleteUser, Statement.RETURN_GENERATED_KEYS);
+			pst.setString(1, login);
 			pst.executeUpdate();
 			return true;
 		} catch (SQLException e) {
@@ -280,6 +364,7 @@ public class DBManager {
 		    return false;
 		}
 	}
+	
 	/**
 	 * Check if user exist
 	 * @param login
@@ -314,6 +399,59 @@ public class DBManager {
 	 * @return
 	 */
 	public Connection getConnection(){
-		return DBManager.conn;
+		return RMIDBManager.conn;
+	}
+
+	@Override
+	public String hello() throws RemoteException {
+		return "HELLO RMI";
+	}
+	
+	public void test(){
+		if(getProperties()){
+			RMIDBManager dbM = new RMIDBManager();
+			if(dbM.connection()){
+				System.out.println("Tables :");
+				ArrayList<String> listTableBDD = dbM.afficheTables();
+				if(listTableBDD != null){
+					for(int i=0; i<listTableBDD.size(); i++){
+						System.out.println("\t'"+listTableBDD.get(i)+"'");
+					}
+				}
+				ArrayList<String> listBoat = dbM.afficheElementTable("bateau");
+				System.out.println("Bateau :");
+				if(listBoat != null){
+					for(int i = 0; i<listBoat.size(); i++){
+						System.out.println("\t'"+listBoat.get(i)+"'");
+					}
+				}
+				if(dbM.addBoat(new Boat("32 Riviera", "Super bateau", "", 2))){
+					System.out.println("Ajout Bateau OK!");
+				}
+				
+				if(dbM.addGroupe(new Groupe("test"))){
+					System.out.println("Ajout Groupe OK!");
+				}
+				
+				if(dbM.addUser(new User("toto", "test"))){
+					System.out.println("Ajout User OK!");
+				}
+				
+				if(dbM.removeBoat("32 Riviera")){
+					System.out.println("Suppression OK!");
+				}
+				
+				if(dbM.userExist("antoine", "fouque")){
+					System.out.println("User exist !");
+				}
+				else{
+					System.out.println("User Not Exist!");
+				}
+			}
+			else{
+				System.out.println("Connection failed");
+			}
+		}
+		
 	}
 }

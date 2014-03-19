@@ -7,6 +7,9 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
+import db.manager.DB;
+import db.manager.RMIDBManager;
+
 
 public class Server{
 	
@@ -54,25 +57,12 @@ public class Server{
 	{
 		Server srv = new Server(2000);
 		srv.init();
+		System.out.println("---------------------------SERVEUR-----------------------------");
 		System.out.println("Serveur RMI Started");
-		RMIObject o = new RMIObject();
-		srv.export(o, "hello");
+		RMIDBManager o = new RMIDBManager();
+		srv.export(o, "RMIDBManager");
+		System.out.println("Serveur publish RMIDBManager Object");
+		System.out.println("---------------------------------------------------------------");
 		
-		try 
-		{
-			Remote r = srv.lookup("hello");
-			if(r != null)
-			{
-				RMIObject test = (RMIObject) r;
-				System.out.println(test.hello());
-			}
-			else throw new Exception("lookup hello null");
-			
-		} catch (RemoteException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		System.exit(0);
 	}
 }
