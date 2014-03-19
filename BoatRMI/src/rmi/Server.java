@@ -1,67 +1,53 @@
 package rmi;
 
-import java.rmi.NotBoundException;
-import java.rmi.Remote;
+import impl.BoatImpl;
+import impl.GroupImpl;
+import impl.UserImpl;
+
+import java.net.InetAddress;
+import java.net.MalformedURLException;
+import java.net.UnknownHostException;
+import java.rmi.AlreadyBoundException;
+import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
-
-import db.manager.RMIDBManager;
 
 
 public class Server{
 	
-	private Registry reg;
-	private int port;
-
-	public Server(int p){
-		this.port = p;
-	}
-	
-	public void init()
+	public static void main(String [] args) 
 	{
-		try 
-		{
-			reg = LocateRegistry.createRegistry(port);
+		try{
+			LocateRegistry.createRegistry(2000);
+			System.out.println("---------------------------SERVEUR-----------------------------");
+			System.out.println("Serveur RMI Started");
+			
+			BoatImpl boatImpl = new BoatImpl();
+			String url = "rmi://" + InetAddress.getLocalHost().getHostAddress() + "/Boat";
+			System.out.println("Enregistrement de l'objet avec l'url : " + url);
+			Naming.rebind(url, boatImpl);
+			
+			GroupImpl groupImpl = new GroupImpl();
+			url = "rmi://" + InetAddress.getLocalHost().getHostAddress() + "/Group";
+			System.out.println("Enregistrement de l'objet avec l'url : " + url);
+			Naming.rebind(url, groupImpl);
+			
+			UserImpl userImpl = new UserImpl();
+			url = "rmi://" + InetAddress.getLocalHost().getHostAddress() + "/User";
+			System.out.println("Enregistrement de l'objet avec l'url : " + url);
+			Naming.bind(url, userImpl);
+			
+			System.out.println("---------------------------------------------------------------");
 		} catch (RemoteException e) {
 			e.printStackTrace();
-		}
-	}
-	
-	//Met l'objet sur le bus
-	public boolean export(Remote o, String name)
-	{
-		try 
-		{
-			reg.rebind(name, UnicastRemoteObject.exportObject(o, 0));
-			return true;
-		} catch (RemoteException e) {
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (AlreadyBoundException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return false;
-	}
-	
-	public Remote lookup(String ch)
-	{
-		try {
-			return reg.lookup(ch);
-		} catch (RemoteException | NotBoundException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
-	public static void main(String [] args)
-	{
-		Server srv = new Server(2000);
-		srv.init();
-		System.out.println("---------------------------SERVEUR-----------------------------");
-		System.out.println("Serveur RMI Started");
-		RMIDBManager o = new RMIDBManager();
-		srv.export(o, "RMIDBManager");
-		System.out.println("Serveur publish RMIDBManager Object");
-		System.out.println("---------------------------------------------------------------");
 		
 	}
 }

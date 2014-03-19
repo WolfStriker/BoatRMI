@@ -1,5 +1,7 @@
 package rmi;
 
+import interfaces.IConnBDD;
+
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -16,9 +18,9 @@ public class ClientRMI {
 			Remote r = reg.lookup("RMIDBManager");
 			if(r != null)
 			{
-				IRMIDB irmdb = (IRMIDB) r;
+				IConnBDD iconn = (IConnBDD) r;
 				System.out.println("Execute Test");
-				irmdb.test();
+				iconn.test();
 			}
 			else throw new Exception("lookup hello null");
 			
