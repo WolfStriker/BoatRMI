@@ -112,6 +112,59 @@ public class RMIDBManager implements IRMIDB{
 	}
 	
 	/**
+	 * Search boats by group
+	 * @param group
+	 * @return arrayList of strings (boats)
+	 */
+	public ArrayList<String> searchBoatByGroup(String group){
+		ArrayList<String> list = new ArrayList<String>(0);
+		try{
+			String search = "SELECT * FROM bateau WHERE groupe LIKE '%?%'";
+			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(search, Statement.RETURN_GENERATED_KEYS);
+			pst.setInt(1, this.getIdGroup(group));
+			ResultSet rs = pst.executeQuery(search);
+			ResultSetMetaData rsmd = (ResultSetMetaData) rs.getMetaData();
+			int nbCol = rsmd.getColumnCount();
+			String colName = "";
+			for(int i=1 ; i<=nbCol ; i++){
+				colName += "- "+rsmd.getColumnName(i);
+			}
+			list.add(colName);
+			String l = "";
+			while(rs.next()){
+				for(int i = 1 ; i<=nbCol ; i++){
+					l += "- "+rs.getString(i);
+				}
+				list.add(l);
+				l = "";
+			}
+			return list;
+		}catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	/**
+	 * Get id of group from his name
+	 * @param name of group
+	 * @return id of group
+	 */
+	public int getIdGroup(String group){
+		try{
+
+			String search = "SELECT nom FROM groupe WHERE id LIKE '%?%'";
+			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(search, Statement.RETURN_GENERATED_KEYS); 
+			pst.setMaxRows(1); 
+			ResultSet rs = pst.executeQuery();
+			return rs.getInt(0);
+		}catch (SQLException e) {
+			e.printStackTrace();
+			return -1;
+		}
+	}
+	
+	/**
 	 * Add boat on BDD
 	 * @param b
 	 * @return
@@ -225,6 +278,28 @@ public class RMIDBManager implements IRMIDB{
 	}
 	
 	/**
+	 * Update boat in BDD
+	 * @param id, notice, nom, photo
+	 * @return bool
+	 */
+	public boolean updateBoat(int id, String notice, String nom, String photo)
+	{
+		try {
+			String updateBoat = "UPDATE bateau SET notice=?,nom=?,photo=?,groupe=? WHERE id=?";
+			PreparedStatement ps = (PreparedStatement) conn.prepareStatement(updateBoat);
+		    ps.setString(1, notice);
+		    ps.setString(2, nom);
+		    ps.setString(3, photo);
+		    ps.setInt(4, id);
+		    ps.executeUpdate();
+		    return true;
+		} catch (Exception e) {
+		    e.printStackTrace();
+		    return false;
+		}
+	}
+	
+	/**
 	 * Check if user exist
 	 * @param login
 	 * @param password
@@ -281,7 +356,7 @@ public class RMIDBManager implements IRMIDB{
 				System.out.println("Bateau :");
 				if(listBoat != null){
 					for(int i = 0; i<listBoat.size(); i++){
-						System.out.println("\t'"+listBoat.get(i)+"'");
+						System.out.println("\tnom : '"+listBoat.get(i).getNom()+"' - notice : '"+listBoat.get(i).getNotice()+"'");
 					}
 				}
 				if(dbM.addBoat(new Boat("32 Riviera", "Super bateau", "", 2))){

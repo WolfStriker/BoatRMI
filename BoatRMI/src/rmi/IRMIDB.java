@@ -26,6 +26,9 @@ public interface IRMIDB extends Remote{
 	public ArrayList<Boat> afficheAllBoat() throws RemoteException;
 	
 	public ArrayList<Boat> searchBoat(String note) throws RemoteException;
+	public ArrayList<String> searchBoatByGroup(String group) throws RemoteException;
+	
+	public int getIdGroup(String group)throws RemoteException;
 	
 	public boolean addBoat(Boat b) throws RemoteException;
 	public boolean addGroupe(Groupe g) throws RemoteException;
@@ -34,6 +37,8 @@ public interface IRMIDB extends Remote{
 	public boolean removeBoat(String nom) throws RemoteException;
 	public boolean removeGroupe(String nom) throws RemoteException;
 	public boolean removeUser(String login) throws RemoteException;
+	
+	public boolean updateBoat(int id, String notice, String nom, String photo) throws RemoteException;
 	
 	public boolean userExist(String login, String password) throws RemoteException;
 	
