@@ -3,7 +3,7 @@ package rmi;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
-import db.Boat;
+import bean.Boat;
 
 public class RMIObject implements IMethod{
 

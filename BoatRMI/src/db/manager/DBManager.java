@@ -7,13 +7,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import bean.Boat;
+import bean.Groupe;
+import bean.User;
+
 import com.mysql.jdbc.PreparedStatement;
 import com.mysql.jdbc.ResultSetMetaData;
 import com.mysql.jdbc.Statement;
-
-import db.Boat;
-import db.Groupe;
-import db.User;
 
 public class DBManager {
 

@@ -4,7 +4,7 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 
-import db.Boat;
+import bean.Boat;
 
 public interface IMethod extends Remote{
 	

@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Properties;
 
-import db.Boat;
-import db.Groupe;
-import db.User;
+import bean.Boat;
+import bean.Groupe;
+import bean.User;
 
 public class TestDB {
 

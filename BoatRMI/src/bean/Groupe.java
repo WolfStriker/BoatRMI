@@ -1,4 +1,4 @@
-package db;
+package bean;
 
 public class Groupe {
 
