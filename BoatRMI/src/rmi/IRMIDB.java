@@ -1,5 +1,6 @@
 package rmi;
 
+import java.lang.reflect.Array;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.sql.Connection;
@@ -22,9 +23,9 @@ public interface IRMIDB extends Remote{
 	
 	public ArrayList<String> afficheTables() throws RemoteException;
 	
-	public ArrayList<String> afficheElementTable(String table) throws RemoteException;
+	public ArrayList<Boat> afficheAllBoat() throws RemoteException;
 	
-	public ArrayList<String> search(String note) throws RemoteException;
+	public ArrayList<Boat> searchBoat(String note) throws RemoteException;
 	
 	public boolean addBoat(Boat b) throws RemoteException;
 	public boolean addGroupe(Groupe g) throws RemoteException;
@@ -35,6 +36,8 @@ public interface IRMIDB extends Remote{
 	public boolean removeUser(String login) throws RemoteException;
 	
 	public boolean userExist(String login, String password) throws RemoteException;
+	
+	public void generatePDF() throws RemoteException;
 	
 	
 	

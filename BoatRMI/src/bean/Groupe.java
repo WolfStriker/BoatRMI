@@ -1,7 +1,13 @@
 package bean;
 
-public class Groupe {
+import java.io.Serializable;
 
+public class Groupe implements Serializable{
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private String nom;
 	
 	public Groupe(String n){

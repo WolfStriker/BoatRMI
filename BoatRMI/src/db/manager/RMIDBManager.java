@@ -379,4 +379,50 @@ public class RMIDBManager implements IRMIDB{
 		}
 		
 	}
+
+	@Override
+	public void generatePDF() throws RemoteException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public ArrayList<Boat> afficheAllBoat() throws RemoteException {
+		ArrayList<Boat> list = new ArrayList<Boat>(0);
+		try {
+			ResultSet rs = (ResultSet) st.executeQuery("SELECT * FROM bateau");
+			Boat b = null;
+			while(rs.next()){
+				b = new Boat(rs.getInt("id"), rs.getString("nom"), rs.getString("notice"), rs.getString("photo"), rs.getInt("groupe"));
+				list.add(b);
+				b= null;
+			}
+			return list;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@Override
+	public ArrayList<Boat> searchBoat(String note) throws RemoteException {
+		ArrayList<Boat> list = new ArrayList<Boat>(0);
+		try{
+			String search = "SELECT * FROM bateau WHERE notice LIKE '%?%' OR nom LIKE '%?%'";
+			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(search, Statement.RETURN_GENERATED_KEYS);
+			pst.setString(1, note);
+			pst.setString(2, note);
+			ResultSet rs = pst.executeQuery(search);
+			Boat b = null;
+			while(rs.next()){
+				b = new Boat(rs.getInt("id"), rs.getString("nom"), rs.getString("notice"), rs.getString("photo"), rs.getInt("groupe"));
+				list.add(b);
+				b= null;
+			}
+			return list;
+		}catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 }

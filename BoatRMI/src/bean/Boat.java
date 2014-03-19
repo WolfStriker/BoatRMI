@@ -1,6 +1,13 @@
 package bean;
 
-public class Boat {
+import java.io.Serializable;
+
+public class Boat implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private int id;
 	private String nom;
 	private String notice;
 	private String photo;
@@ -13,6 +20,22 @@ public class Boat {
 		this.groupe = gr;
 	}
 	
+	public Boat(int id, String nom, String notice, String photo, int gr){
+		this.id = id;
+		this.nom = nom;
+		this.notice = notice;
+		this.photo = photo;
+		this.groupe = gr;
+	}
+	
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
 	public String getNom() {
 		return nom;
 	}
