@@ -163,8 +163,12 @@ public class DBManager {
 	 */
 	public boolean addBoat(Boat b){
 		try {
-			String insertBoat = "INSERT INTO projetboat.bateau(notice,photo,groupe) VALUES ('"+b.getNotice()+"', '"+b.getPhoto()+"', '"+b.getGroupe()+"')";
+			String insertBoat = "INSERT INTO projetboat.bateau(nom,notice,photo,groupe) VALUES (?, ?, ?, ?)";
 			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(insertBoat, Statement.RETURN_GENERATED_KEYS);
+			pst.setString(1, b.getNom());
+			pst.setString(2, b.getNotice());
+			pst.setString(3, b.getPhoto());
+			pst.setInt(4, b.getGroupe());
 			pst.executeUpdate();
 			return true;
 		} catch (SQLException e) {
@@ -180,8 +184,9 @@ public class DBManager {
 	 */
 	public boolean addGroupe(Groupe g){
 		try {
-			String insertGroup = "INSERT INTO projetboat.groupe(nom) VALUES ('"+g.getNom()+"')";
+			String insertGroup = "INSERT INTO projetboat.groupe(nom) VALUES (?)";
 			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(insertGroup, Statement.RETURN_GENERATED_KEYS);
+			pst.setString(1, g.getNom());
 			pst.executeUpdate();
 			return true;
 		} catch (SQLException e) {
@@ -197,8 +202,10 @@ public class DBManager {
 	 */
 	public boolean addUser(User u){
 		try {
-			String insertUser = "INSERT INTO projetboat.utilisateur(login,password) VALUES ('"+u.getLogin()+"','"+u.getPassword()+"')";
+			String insertUser = "INSERT INTO projetboat.utilisateur(login,password) VALUES (?, ?)";
 			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(insertUser, Statement.RETURN_GENERATED_KEYS);
+			pst.setString(1, u.getLogin());
+			pst.setString(2, u.getPassword());
 			pst.executeUpdate();
 			return true;
 		} catch (SQLException e) {
@@ -213,10 +220,11 @@ public class DBManager {
 	 * @param notice
 	 * @return
 	 */
-	public boolean removeBoat(String notice){
+	public boolean removeBoat(String nom){
 		try {
-			String deleteBoat = "DELETE FROM projetboat.bateau WHERE bateau.notice ='"+notice+"'";
+			String deleteBoat = "DELETE FROM projetboat.bateau WHERE bateau.nom =?";
 			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(deleteBoat, Statement.RETURN_GENERATED_KEYS);
+			pst.setString(1, nom);
 			pst.executeUpdate();
 			return true;
 		} catch (SQLException e) {
@@ -232,8 +240,9 @@ public class DBManager {
 	 */
 	public boolean removeGroupe(String nom){
 		try {
-			String deleteGroup = "DELETE FROM projetboat.groupe WHERE groupe.nom ='"+nom+"'";
+			String deleteGroup = "DELETE FROM projetboat.groupe WHERE groupe.nom =?";
 			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(deleteGroup, Statement.RETURN_GENERATED_KEYS);
+			pst.setString(1, nom);
 			pst.executeUpdate();
 			return true;
 		} catch (SQLException e) {
@@ -249,8 +258,9 @@ public class DBManager {
 	 */
 	public boolean removeUser(String login){
 		try {
-			String deleteUser = "DELETE FROM projetboat.utilisateur WHERE utilisateu.login ='"+login+"'";
+			String deleteUser = "DELETE FROM projetboat.utilisateur WHERE utilisateu.login =?";
 			PreparedStatement pst = (PreparedStatement) conn.prepareStatement(deleteUser, Statement.RETURN_GENERATED_KEYS);
+			pst.setString(1, login);
 			pst.executeUpdate();
 			return true;
 		} catch (SQLException e) {
